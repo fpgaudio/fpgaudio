@@ -7,9 +7,7 @@ module mod_fpgaudio
   , output logic [0:4] o_debug_pins
 
   , output logic o_i2c_sdclk
-  , inout wire b_i2c_sdat // Note: Quartus requires this to be wire as during
-                          // synthesis it cannnot deduce that the output of the
-                          // I2C module will pipe into a pin-assignment.
+  , inout tri b_i2c_sdat
 
   , output logic o_audio_dacdat
   , inout logic b_audio_bclk
