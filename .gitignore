@@ -1,3 +1,6 @@
 # Quartus-specific
 db/
 *.bak
+simulation/
+output_files/
+incremental_db/
