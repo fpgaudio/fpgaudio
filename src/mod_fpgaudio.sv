@@ -9,11 +9,9 @@ module mod_fpgaudio
   , output logic o_i2c_sdclk
   , inout tri b_i2c_sdat
 
-  , output logic o_audio_dacdat
-  , inout logic b_audio_bclk
-  , inout logic b_audio_adclrck
-  , inout logic b_audio_daclrck
-  , input logic i_audio_adcdat
+  , output logic o_aud_dacdat
+  , inout tri b_aud_daclrck
+  , input logic i_aud_bclk
 
   , input logic i_clk
   , input logic i_nrst
@@ -30,34 +28,39 @@ module mod_fpgaudio
     , .i_clk(i_clk)
     );
 
-  logic i2c_ready;
-  logic [3:0] i2c_fault_code = 4'hf;
-  mod_i2c_master u_i2c_driver
-    ( .o_done(i2c_ready)
-    , .o_fault_code(i2c_fault_code)
-    , .o_i2c_sdclk(o_i2c_sdclk)
-    , .b_i2c_sdat(b_i2c_sdat)
-    , .i_i2c_addr(7'b0011010)
-    , .i_i2c_register(7'b0000110)
-    , .i_i2c_data(9'b0_00_1_0000)
-    , .i_mode_read_not_write(1'b0) // Always write
+  logic [7:0] audio_drv_fault_code  = 8'hff;
+  logic audio_initialized;
+  mod_audio_drv u_audio_driver
+    ( .o_ready(audio_initialized)
+    , .o_fault_code(audio_drv_fault_code)
+    , .o_aud_dacdat(o_aud_dacdat)
+    , .b_aud_daclrck(b_aud_daclrck)
+    , .i_aud_bclk(i_aud_bclk)
+    , .o_i2c_scl(o_i2c_sdclk)
+    , .b_i2c_sdl(b_i2c_sdat)
     , .i_nrst(i_nrst)
     , .i_i2c_clk(clk_200khz)
+    , .i_clk(i_clk)
     );
 
   // Debugging Features.
   assign o_led_1hz = clk_1hz;
   assign o_led_48khz = clk_48khz;
   assign o_debug_pins[0] = clk_200khz;
+  // Output the I2C line on pins 1 and 2
   assign o_debug_pins[1] = o_i2c_sdclk;
-  assign o_debug_pins[2] = b_i2c_sdat;
-  assign o_debug_pins[3] = i_nrst;
-  assign o_debug_pins[4] = i2c_ready;
+  assign o_debug_pins[2] = 
+    b_i2c_sdat == 1'bz ? 1'b1
+    : ( b_i2c_sdat == 1'b1 ? 1'b1
+    : 1'b0
+    );
+  assign o_debug_pins[3] = o_aud_dacdat;
+  assign o_debug_pins[4] = audio_initialized;
   
   mod_byte_display u_display
     ( .o_lcd_upper_nibble(o_lcd7_1)
     , .o_lcd_lower_nibble(o_lcd7_0)
-    , .i_value(i2c_fault_code)
+    , .i_value(audio_drv_fault_code)
     , .i_clk(i_clk)
     , .i_nrst(i_nrst)
     );

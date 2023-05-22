@@ -3,7 +3,7 @@ module mod_i2c_master
   , output logic [3:0] o_fault_code // Spits out a non-zero value upon an error
 
   , output logic o_i2c_sdclk // The I2C SDCLK line.
-  , inout tri b_i2c_sdat // The I2C SDAT line.
+  , inout logic b_i2c_sdat // The I2C SDAT line.
 
   , input logic [6:0] i_i2c_addr // The chip I2C address
   , input logic [6:0] i_i2c_register // The chip register to read/write to
@@ -17,18 +17,24 @@ module mod_i2c_master
 
   localparam STATE_BEGIN = 10'd0;
   localparam STATE_START_CONDITION = 10'd1;
-  logic [9:0] state;
-  logic i2c_sdc;
-  logic i2c_sdl;
+  logic [9:0] state = STATE_BEGIN;
+  logic i2c_sdc = 1'b1;
+  logic i2c_sdl = 1'b1;
 
   always @(posedge i_i2c_clk or negedge i_nrst) begin
     if (i_nrst == 1'b0) begin
       // Handle a reset
       state <= STATE_BEGIN;
       o_done <= 1'b0;
+      i2c_sdc <= 1'b1;
+      i2c_sdl <= 1'b1;
     end else begin
+      if (state < 10'd60) begin
+        state <= state + 10'd1;
+      end
+
       if (!(o_fault_code == 4'd0 || o_fault_code == 4'hf)) begin
-      // A fault has ocurred, block execution
+        // A fault has ocurred, block execution
       end else begin
         case (state)
           STATE_BEGIN: begin
@@ -107,7 +113,7 @@ module mod_i2c_master
             i2c_sdc <= 1'b1;
             // At this point, the slave must've pulled the DAT line low for an
             // ACK.
-            o_fault_code <= i2c_sdl == 1 ? 4'd2 : 0;
+            o_fault_code <= b_i2c_sdat == 1 ? 4'd2 : 4'd0;
           end
           // We may now send the data. First, emit the register
           10'd20: begin
@@ -174,7 +180,7 @@ module mod_i2c_master
           end
           10'd37: begin
             i2c_sdc <= 1'b1;
-            o_fault_code <= i2c_sdl == 1 ? 4'd3 : 0;
+            o_fault_code <= b_i2c_sdat == 1 ? 4'd3 : 4'd0;
           end
           // Send the other chunks of data
           10'd38: begin
@@ -239,7 +245,7 @@ module mod_i2c_master
           end
           10'd55: begin
             i2c_sdc <= 1'b1;
-            o_fault_code <= i2c_sdl == 1 ? 4'd4 : 0;
+            o_fault_code <= b_i2c_sdat == 1 ? 4'd4 : 4'd0;
           end
           // Send stop code.
           10'd56: begin
@@ -254,6 +260,12 @@ module mod_i2c_master
           10'd58: begin
             i2c_sdc  <= 1'b1;
             i2c_sdl <= 1'b1;
+          end
+          // Sleep for two cycles before saying we're done. Helps stabilize
+          // peripheral devices.
+          10'd59: begin
+          end
+          10'd60: begin
             o_done <= 1'b1;
             o_fault_code <= 4'hf;
           end
@@ -261,17 +273,10 @@ module mod_i2c_master
             o_fault_code <= 4'd5;
           end
         endcase
-
-        // Advance the state machine
-        if (i_nrst != 1'b0 && state < 10'd58) begin
-          state <= state + 1;
-        end else begin
-          // Do not advance the machine if we reached the final state.
-        end
       end
     end
   end
 
   assign o_i2c_sdclk = i2c_sdc;
-  assign b_i2c_sdat = (~i_nrst ? 1'b0 : i2c_sdl) == 1'b1 ? 1'bz : 1'b0;
+  assign b_i2c_sdat = ((i_nrst ? i2c_sdl : 1'b0) == 1) ? 1'bz : 1'b0;
 endmodule
