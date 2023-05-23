@@ -10,7 +10,6 @@ module mod_audio_drv_config#
   , inout tri b_i2c_sdl // The I2C data line
 
   , input logic i_nrst
-  , input logic i_i2c_clk // The I2C Clock
   , input logic i_clk // The global clock
   );
 
@@ -55,7 +54,7 @@ module mod_audio_drv_config#
     , .i_i2c_data(i2c_current_data)
     , .i_mode_read_not_write(1'b0)
     , .i_nrst(i2c_flush)
-    , .i_i2c_clk(i_i2c_clk)
+    , .i_clk(i_clk)
     );
 
   always @(posedge i_clk or negedge i_nrst) begin
@@ -130,6 +129,8 @@ module mod_audio_drv_config#
       , STATE_WRITE_ACTIVATION: begin
           if (i2c_done) begin
             state <= state + 1'b1;
+          end else begin
+            // Wait until i2c is done.
           end
         end
 

@@ -4,3 +4,6 @@ db/
 simulation/
 output_files/
 incremental_db/
+.qsys_edit/
+greybox_tmp/
+serv_req_info.txt
