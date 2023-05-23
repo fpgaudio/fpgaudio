@@ -1,4 +1,7 @@
-module mod_i2c_master
+module mod_i2c_master#
+  ( parameter I2C_CLOCK_RATE_HZ = 200_000
+  , parameter GLOBAL_CLOCK_RATE_HZ = 50_000_000
+  )
   ( output logic o_done // Pulled high when the I2C transaction is finished.
   , output logic [3:0] o_fault_code // Spits out a non-zero value upon an error
 
@@ -11,17 +14,38 @@ module mod_i2c_master
   , input logic i_mode_read_not_write // High to read, low to write
 
   , input logic i_nrst // Async, negedge reset
-  , input logic i_i2c_clk // I2C clock. Must be between 200khz and 800khz.
-                          // This module will output a SCL of half the speed.
+  , input logic i_clk // The global clock.
   );
 
+  // Local clock to slow down the I2C module.
+  logic i2c_clk;
+  logic [9:0] i2c_clk_count;
+  always @(posedge i_clk or negedge i_nrst) begin
+    if (i_nrst == 1'b0) begin
+      i2c_clk_count <= 10'd0;
+      i2c_clk <= 1'b0;
+    end else begin
+      i2c_clk_count <= i2c_clk_count + 10'd1;
+      if (i2c_clk_count == (GLOBAL_CLOCK_RATE_HZ / I2C_CLOCK_RATE_HZ)) begin
+        i2c_clk_count <= 10'd0;
+        i2c_clk <= ~i2c_clk;
+      end else begin
+        // Do nothing -- clock stays same state.
+      end
+    end
+  end
+
+  // State Machine for the I2C transaction.
   localparam STATE_BEGIN = 10'd0;
   localparam STATE_START_CONDITION = 10'd1;
   logic [9:0] state = STATE_BEGIN;
+
+  // Local logic Lines for the SDL and SDC lines.
   logic i2c_sdc = 1'b1;
   logic i2c_sdl = 1'b1;
 
-  always @(posedge i_i2c_clk or negedge i_nrst) begin
+  // Main I2C state machine.
+  always @(posedge i2c_clk or negedge i_nrst) begin
     if (i_nrst == 1'b0) begin
       // Handle a reset
       state <= STATE_BEGIN;
