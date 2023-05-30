@@ -50,15 +50,6 @@ set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
 set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
 set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (Verilog)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
-set_location_assignment PIN_Y23 -to rst
-set_location_assignment PIN_Y2 -to clk
-set_location_assignment PIN_F2 -to AUD_BCLK
-set_location_assignment PIN_D1 -to AUD_DACDAT
-set_location_assignment PIN_E3 -to AUD_DACLRCK
-set_location_assignment PIN_D2 -to AUD_ADCDAT
-set_location_assignment PIN_C2 -to AUD_ADCLRCK
-set_location_assignment PIN_A8 -to SDAT
-set_location_assignment PIN_B7 -to SDCLK
 set_location_assignment PIN_G19 -to errorLED
 set_location_assignment PIN_G21 -to initSuccessLED
 set_location_assignment PIN_G18 -to ss1[0]
@@ -81,36 +72,52 @@ set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS 3
 set_global_assignment -name ENABLE_SIGNALTAP ON
 set_global_assignment -name USE_SIGNALTAP_FILE output_files/toneTap.stp
-set_location_assignment PIN_E1 -to AUD_XCK
-set_location_assignment PIN_H15 -to redLEDs[0]
-set_location_assignment PIN_G16 -to redLEDs[1]
-set_location_assignment PIN_G15 -to redLEDs[2]
-set_location_assignment PIN_F15 -to redLEDs[3]
-set_location_assignment PIN_H17 -to redLEDs[4]
-set_location_assignment PIN_J16 -to redLEDs[5]
-set_location_assignment PIN_H16 -to redLEDs[6]
-set_location_assignment PIN_J15 -to redLEDs[7]
-set_location_assignment PIN_G17 -to redLEDs[8]
-set_location_assignment PIN_J17 -to redLEDs[9]
-set_location_assignment PIN_H19 -to redLEDs[10]
-set_location_assignment PIN_J19 -to redLEDs[11]
-set_location_assignment PIN_E18 -to redLEDs[12]
-set_location_assignment PIN_F18 -to redLEDs[13]
-set_location_assignment PIN_F21 -to redLEDs[14]
-set_location_assignment PIN_E19 -to redLEDs[15]
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
 set_global_assignment -name SMART_RECOMPILE ON
+
+set_location_assignment PIN_F2 -to i_aud_bclk
+set_location_assignment PIN_D1 -to o_aud_dacdat
+set_location_assignment PIN_E3 -to i_aud_daclrck
+set_location_assignment PIN_A8 -to b_sdl
+set_location_assignment PIN_Y2 -to i_clk
+set_location_assignment PIN_Y23 -to i_nrst
+set_location_assignment PIN_B7 -to o_scl
+set_location_assignment PIN_H15 -to o_led_array[0]
+set_location_assignment PIN_G16 -to o_led_array[1]
+set_location_assignment PIN_G15 -to o_led_array[2]
+set_location_assignment PIN_F15 -to o_led_array[3]
+set_location_assignment PIN_H17 -to o_led_array[4]
+set_location_assignment PIN_J16 -to o_led_array[5]
+set_location_assignment PIN_H16 -to o_led_array[6]
+set_location_assignment PIN_J15 -to o_led_array[7]
+set_location_assignment PIN_G17 -to o_led_array[8]
+set_location_assignment PIN_J17 -to o_led_array[9]
+set_location_assignment PIN_H19 -to o_led_array[10]
+set_location_assignment PIN_J19 -to o_led_array[11]
+set_location_assignment PIN_E18 -to o_led_array[12]
+set_location_assignment PIN_F18 -to o_led_array[13]
+set_location_assignment PIN_F21 -to o_led_array[14]
+set_location_assignment PIN_E19 -to o_led_array[15]
+set_location_assignment PIN_E1 -to o_aud_xck
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/subprojects/cordic/sv/fifo.sv"
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/subprojects/cordic/sv/cordic_config.sv"
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/subprojects/cordic/sv/cordic_stage.sv"
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/subprojects/cordic/sv/cordic.sv"
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/src/mod_attenuator.sv"
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/src/mod_fixed_mul.sv"
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/src/mod_synth.sv"
+set_global_assignment -name SYSTEMVERILOG_FILE "subprojects/orpheus-vlg/src/mod_sinesource.sv"
 set_global_assignment -name SYSTEMVERILOG_FILE src/mod_audio_drv_config.sv
 set_global_assignment -name SYSTEMVERILOG_FILE src/mod_7seg.sv
 set_global_assignment -name SYSTEMVERILOG_FILE src/mod_vumeter.sv
 set_global_assignment -name SYSTEMVERILOG_FILE src/mod_i2c_master.sv
 set_global_assignment -name VERILOG_FILE AudioClocker/synthesis/AudioClocker.v -library AudioClocker
 set_global_assignment -name QIP_FILE AudioClocker/synthesis/AudioClocker.qip
-set_global_assignment -name VERILOG_FILE fpgaudio.sv
+set_global_assignment -name VERILOG_FILE fpgaudio.sv -hdl_version SystemVerilog_2005
 set_global_assignment -name VERILOG_FILE AudioInit.v
 set_global_assignment -name VERILOG_FILE AudioDac.v
-
+set_global_assignment -name SDC_FILE fpgaudio.sdc
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
