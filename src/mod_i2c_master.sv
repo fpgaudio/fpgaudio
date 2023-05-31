@@ -29,8 +29,6 @@ module mod_i2c_master#
       if (i2c_clk_count == (GLOBAL_CLOCK_RATE_HZ / I2C_CLOCK_RATE_HZ)) begin
         i2c_clk_count <= 10'd0;
         i2c_clk <= ~i2c_clk;
-      end else begin
-        // Do nothing -- clock stays same state.
       end
     end
   end

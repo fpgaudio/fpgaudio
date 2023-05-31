@@ -1,6 +1,6 @@
 [submodule "subprojects/orpheus-vlg"]
 	path = subprojects/orpheus-vlg
 	url = https://github.com/fpgaudio/orpheus-vlg.git
-[submodule "subprojects/midi_module"]
-	path = subprojects/midi_module
-	url = https://github.com/fpgaudio/midi_module.git
+[submodule "subprojects/midas"]
+	path = subprojects/midas
+	url = https://github.com/fpgaudio/midas.git
