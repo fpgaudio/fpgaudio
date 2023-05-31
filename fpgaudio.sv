@@ -15,8 +15,10 @@ module fpgaudio
   , output [0:6] o_lcd7_3
   , output [0:6] o_lcd7_4
   , output [0:6] o_lcd7_5
+  , output [0:6] o_lcd7_6
+  , output [0:6] o_lcd7_7
   , output [15:0] o_led_array
-  , output [15:0] o_grn_led_array
+  , output [7:0] o_grn_led_array
   , output [7:0] o_dbg_pins
   );
   
@@ -35,6 +37,27 @@ module fpgaudio
 
   logic [15:0] midi_req_freq;
   midi_to_freq u_midi_freq_convert(.midi(midi_bits), .freq(midi_req_freq));
+
+  // Leap Decoder
+  logic [39:0] leap_bits;
+  logic [3:0] leap_state;
+  leap_in u_leap_decoder
+    ( .clk(i_clk)
+    , .serial(i_lmc_uart)
+    , .rst_n(i_nrst)
+    , .out_bytes(leap_bits)
+    , .state(leap_state)
+    );
+  logic [7:0] palm_ampl;
+  assign palm_ampl = leap_bits[7:0];
+  logic [7:0] index_angl;
+  assign index_angl = leap_bits[15:8];
+  logic [7:0] middle_angl;
+  assign middle_angl = leap_bits[23:16];
+  logic [7:0] ring_angl;
+  assign ring_angl = leap_bits[31:24];
+  logic [7:0] pinky_angl;
+  assign pinky_angl = leap_bits[39:32];
   
   // Synthesizer Driver
   logic [31:0] synth_sound;
@@ -43,6 +66,7 @@ module fpgaudio
     ( .o_sound(synth_sound)
     , .o_synth_ready__(synth_ready)
     , .i_current_freq(32'(midi_req_freq))
+	 , .i_palm_ampl(palm_ampl)
     , .i_play(midi_note_on)
     , .i_aud_clk(i_aud_bclk)
     , .i_clk(i_clk)
@@ -141,17 +165,42 @@ module fpgaudio
   assign o_dbg_pins[1] = i_midi_inp;
   assign o_dbg_pins[2] = synth_sound[0];
   assign o_dbg_pins[3] = synth_sound[1];
-  assign o_dbg_pins[4] = synth_sound[2];
+  assign o_dbg_pins[4] = i_lmc_uart;
   assign o_dbg_pins[5] = midi_note_on;
   assign o_dbg_pins[6] = i_aud_daclrck;
   assign o_dbg_pins[7] = i_nrst;
+  
+  mod_byte_display u_leap_debug_byte3
+	( .o_lcd_upper_nibble(o_lcd7_7)
+	, .o_lcd_lower_nibble(o_lcd7_6)
+	, .i_value(ring_angl)
+	, .i_clk(i_clk)
+	, .i_nrst(i_nrst)
+	);
+  
+  mod_byte_display u_leap_debug_byte2
+	( .o_lcd_upper_nibble(o_lcd7_5)
+	, .o_lcd_lower_nibble(o_lcd7_4)
+	, .i_value(middle_angl)
+	, .i_clk(i_clk)
+	, .i_nrst(i_nrst)
+	);
 
-  mod_byte_display u_midi_middle_byte
+  mod_byte_display u_leap_debug_byte1
+    ( .o_lcd_upper_nibble(o_lcd7_3)
+    , .o_lcd_lower_nibble(o_lcd7_2)
+    , .i_value(index_angl)
+    , .i_clk(i_clk)
+    , .i_nrst(i_nrst)
+    );
+
+  mod_byte_display u_leap_debug_byte0
     ( .o_lcd_upper_nibble(o_lcd7_1)
     , .o_lcd_lower_nibble(o_lcd7_0)
-    , .i_value(midi_bits[15:8])
+    , .i_value(palm_ampl)
     , .i_clk(i_clk)
     , .i_nrst(i_nrst)
     );
   mod_vumeter u_vumeter(o_led_array, current_dac_data);
+  mod_vumeter8 u_palm_vumeter(o_grn_led_array, palm_ampl);
 endmodule

@@ -2,6 +2,7 @@ module mod_synth_driver
   ( output logic [31:0] o_sound
   , output logic o_synth_ready__
   , input logic [31:0] i_current_freq
+  , input logic [7:0] i_palm_ampl
   , input logic i_play
   , input logic i_aud_clk
   , input logic i_clk
@@ -41,7 +42,7 @@ module mod_synth_driver
       , 32'd0 << 15
       , 32'd0 << 15
       }
-    , i_play ? (32'd1 << 32'd15) : 32'd0
+    , i_play ? (32'(i_palm_ampl) << 32'd7) : 32'd0
     , synth_trigger
     , i_clk
     , i_nrst

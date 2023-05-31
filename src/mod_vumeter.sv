@@ -20,5 +20,4 @@ module mod_vumeter#
       o_led_amps[i] = (amp > (2048 * i)) ? 1'b1 : 1'b0;
     end
   end
-
 endmodule
