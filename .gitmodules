@@ -4,3 +4,9 @@
 [submodule "subprojects/midas"]
 	path = subprojects/midas
 	url = https://github.com/fpgaudio/midas.git
+[submodule "subprojects/midi_module"]
+	path = subprojects/midi_module
+	url = git@github.com:fpgaudio/midi_module.git
+[submodule "subprojects/fpga-lmc"]
+	path = subprojects/fpga-lmc
+	url = git@github.com:fpgaudio/fpga-lmc.git
